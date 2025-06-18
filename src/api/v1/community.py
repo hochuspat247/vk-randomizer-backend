@@ -1,22 +1,314 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from src.db.models.community import Community as CommunityModel
-from src.schemas.community import Community, CommunityCreate
-from src.api.deps import get_db
+from fastapi import APIRouter, HTTPException, status
+from typing import List, Dict
+from src.schemas.community import CommunityCard, CommunityCardCreate, CommunityCardUpdate
 
-router = APIRouter()
+router = APIRouter(prefix="/communities", tags=["Communities"])
 
-@router.post("/communities/", response_model=Community)
-def create_community(community: CommunityCreate, db: Session = Depends(get_db)):
-    db_community = CommunityModel(**community.dict())
-    db.add(db_community)
-    db.commit()
-    db.refresh(db_community)
-    return db_community
+# In-memory demo DB
+communities_db: Dict[str, CommunityCard] = {}
 
-@router.get("/communities/{community_id}", response_model=Community)
-def read_community(community_id: int, db: Session = Depends(get_db)):
-    db_community = db.query(CommunityModel).filter(CommunityModel.id == community_id).first()
-    if db_community is None:
-        raise HTTPException(status_code=404, detail="Community not found")
-    return db_community
+# Демо-данные
+communities_db["1"] = CommunityCard(
+    id="1",
+    name="Техно-сообщество",
+    nickname="@techclub",
+    membersCount="12 500",
+    raffleCount="8",
+    adminType="owner",
+    avatarUrl="https://example.com/avatar.jpg",
+    status="green",
+    buttonDesc="Последнее изменение: 14.10 21:31 – Администратор",
+    stateText="Активен"
+)
+communities_db["2"] = CommunityCard(
+    id="2",
+    name="Москва 24 – Новости",
+    nickname="@mosnews24",
+    membersCount="522K",
+    raffleCount="15",
+    adminType="admin",
+    avatarUrl="https://example.com/mosnews.jpg",
+    status="yellow",
+    buttonDesc="Последнее изменение: 15.10 14:20 – Модератор",
+    stateText="Неактивен"
+)
+communities_db["3"] = CommunityCard(
+    id="3",
+    name="Казань 24 – Новости",
+    nickname="@kazan24",
+    membersCount="804K",
+    raffleCount="12",
+    adminType="owner",
+    avatarUrl="https://example.com/kazan.jpg",
+    status="red",
+    buttonDesc="Последнее изменение: 16.10 09:15 – Администратор",
+    stateText="Неактивен"
+)
+communities_db["4"] = CommunityCard(
+    id="4",
+    name="Санкт-Петербург Онлайн",
+    nickname="@spbonline",
+    membersCount="878K",
+    raffleCount="20",
+    adminType="admin",
+    avatarUrl="https://example.com/spb.jpg",
+    status="green",
+    buttonDesc="Последнее изменение: 17.10 16:45 – Админ",
+    stateText="Активен"
+)
+
+@router.get("/cards", response_model=List[CommunityCard], summary="Получить список карточек сообществ")
+async def get_community_cards():
+    """
+    Возвращает список всех карточек сообществ в системе.
+    
+    **Возвращает:**
+    - Список всех карточек сообществ с полной информацией
+    
+    **Примеры ответов:**
+    - 200: Успешно получен список карточек
+    - 500: Ошибка сервера при получении данных
+    
+    **Пример ответа:**
+    ```json
+    [
+      {
+        "id": "1",
+        "name": "Техно-сообщество",
+        "nickname": "@techclub",
+        "membersCount": "12 500",
+        "raffleCount": "8",
+        "adminType": "owner",
+        "avatarUrl": "https://example.com/avatar.jpg",
+        "status": "green",
+        "buttonDesc": "Последнее изменение: 14.10 21:31 – Администратор",
+        "stateText": "Активен"
+      }
+    ]
+    ```
+    """
+    return list(communities_db.values())
+
+@router.get("/cards/{card_id}", response_model=CommunityCard, summary="Получить карточку сообщества по ID")
+async def get_community_card(card_id: str):
+    """
+    Возвращает карточку сообщества по указанному ID.
+    
+    **Параметры:**
+    - card_id: Уникальный идентификатор карточки (строка)
+    
+    **Возвращает:**
+    - Карточка сообщества с полной информацией
+    
+    **Ошибки:**
+    - 404: Карточка не найдена
+    - 500: Ошибка сервера при получении данных
+    
+    **Пример ответа:**
+    ```json
+    {
+      "id": "1",
+      "name": "Техно-сообщество",
+      "nickname": "@techclub",
+      "membersCount": "12 500",
+      "raffleCount": "8",
+      "adminType": "owner",
+      "avatarUrl": "https://example.com/avatar.jpg",
+      "status": "green",
+      "buttonDesc": "Последнее изменение: 14.10 21:31 – Администратор",
+      "stateText": "Активен"
+    }
+    ```
+    """
+    community = communities_db.get(card_id)
+    if not community:
+        raise HTTPException(status_code=404, detail="Карточка не найдена")
+    return community
+
+@router.post("/cards", response_model=CommunityCard, status_code=status.HTTP_201_CREATED, summary="Создать карточку сообщества")
+async def create_community_card(card: CommunityCardCreate):
+    """
+    Создает новую карточку сообщества в базе данных.
+    
+    **Параметры:**
+    - card: Данные для создания карточки сообщества (обязательно все поля)
+    
+    **Возвращает:**
+    - Созданная карточка сообщества
+    
+    **Ошибки:**
+    - 400: Карточка с таким ID уже существует
+    - 422: Ошибка валидации данных
+    - 500: Ошибка сервера при создании
+    
+    **Пример запроса:**
+    ```json
+    {
+        "id": "1",
+        "name": "Техно-сообщество",
+        "nickname": "@techclub",
+        "membersCount": "12 500",
+        "raffleCount": "8",
+        "adminType": "owner",
+        "avatarUrl": "https://example.com/avatar.jpg",
+        "status": "green",
+        "buttonDesc": "Последнее изменение: 14.10 21:31 – Администратор",
+        "stateText": "Активен"
+    }
+    ```
+    
+    **Пример ответа:**
+    ```json
+    {
+        "id": "1",
+        "name": "Техно-сообщество",
+        "nickname": "@techclub",
+        "membersCount": "12 500",
+        "raffleCount": "8",
+        "adminType": "owner",
+        "avatarUrl": "https://example.com/avatar.jpg",
+        "status": "green",
+        "buttonDesc": "Последнее изменение: 14.10 21:31 – Администратор",
+        "stateText": "Активен"
+    }
+    ```
+    """
+    if card.id in communities_db:
+        raise HTTPException(status_code=400, detail="Карточка с таким ID уже существует")
+    communities_db[card.id] = CommunityCard(**card.dict())
+    return communities_db[card.id]
+
+@router.put("/cards/{card_id}", response_model=CommunityCard, summary="Обновить карточку сообщества")
+async def update_community_card(card_id: str, card: CommunityCardUpdate):
+    """
+    Обновляет данные карточки сообщества по ID.
+    
+    **Параметры:**
+    - card_id: Уникальный идентификатор карточки (строка)
+    - card: Данные для обновления карточки (все поля необязательны)
+    
+    **Возвращает:**
+    - Обновленная карточка сообщества
+    
+    **Ошибки:**
+    - 404: Карточка не найдена
+    - 422: Ошибка валидации данных
+    - 500: Ошибка сервера при обновлении
+    
+    **Пример запроса:**
+    ```json
+    {
+        "name": "Обновленное название",
+        "membersCount": "15 000",
+        "status": "yellow"
+    }
+    ```
+    
+    **Пример ответа:**
+    ```json
+    {
+        "id": "1",
+        "name": "Обновленное название",
+        "nickname": "@techclub",
+        "membersCount": "15 000",
+        "raffleCount": "8",
+        "adminType": "owner",
+        "avatarUrl": "https://example.com/avatar.jpg",
+        "status": "yellow",
+        "buttonDesc": "Последнее изменение: 14.10 21:31 – Администратор",
+        "stateText": "Активен"
+    }
+    ```
+    """
+    if card_id not in communities_db:
+        raise HTTPException(status_code=404, detail="Карточка не найдена")
+    
+    current_card = communities_db[card_id]
+    update_data = card.dict(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        setattr(current_card, key, value)
+    
+    return current_card
+
+@router.patch("/cards/{card_id}", response_model=CommunityCard, summary="Частично обновить карточку сообщества")
+async def patch_community_card(card_id: str, card: CommunityCardUpdate):
+    """
+    Частично обновляет данные карточки сообщества по ID.
+    
+    **Параметры:**
+    - card_id: Уникальный идентификатор карточки (строка)
+    - card: Данные для частичного обновления карточки (любые поля)
+    
+    **Возвращает:**
+    - Обновленная карточка сообщества
+    
+    **Ошибки:**
+    - 404: Карточка не найдена
+    - 422: Ошибка валидации данных
+    - 500: Ошибка сервера при обновлении
+    
+    **Пример запроса:**
+    ```json
+    {
+        "status": "red",
+        "buttonDesc": "Новое описание кнопки"
+    }
+    ```
+    
+    **Пример ответа:**
+    ```json
+    {
+        "id": "1",
+        "name": "Техно-сообщество",
+        "nickname": "@techclub",
+        "membersCount": "12 500",
+        "raffleCount": "8",
+        "adminType": "owner",
+        "avatarUrl": "https://example.com/avatar.jpg",
+        "status": "red",
+        "buttonDesc": "Новое описание кнопки",
+        "stateText": "Активен"
+    }
+    ```
+    """
+    if card_id not in communities_db:
+        raise HTTPException(status_code=404, detail="Карточка не найдена")
+    
+    current_card = communities_db[card_id]
+    update_data = card.dict(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        setattr(current_card, key, value)
+    
+    return current_card
+
+@router.delete("/cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Удалить карточку сообщества")
+async def delete_community_card(card_id: str):
+    """
+    Удаляет карточку сообщества по ID.
+    
+    **Параметры:**
+    - card_id: Уникальный идентификатор карточки (строка)
+    
+    **Возвращает:**
+    - 204: Карточка успешно удалена
+    
+    **Ошибки:**
+    - 404: Карточка не найдена
+    - 500: Ошибка сервера при удалении
+    
+    **Пример использования:**
+    ```
+    DELETE /api/v1/communities/cards/1
+    ```
+    
+    **Ответ:**
+    ```
+    HTTP/1.1 204 No Content
+    ```
+    """
+    if card_id not in communities_db:
+        raise HTTPException(status_code=404, detail="Карточка не найдена")
+    del communities_db[card_id]
+    return None

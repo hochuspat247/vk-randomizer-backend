@@ -1,1 +1,3 @@
-# Импорт всех моделей для Alembic
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
