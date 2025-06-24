@@ -1,9 +1,19 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from src.api.v1 import community, raffle, notification, community_modal, nested_community_card, notification_card, raffle_card, raffle_carousel_card
 from src.core.config import settings
 from src.core.logging import setup_logging
 
 app = FastAPI(title="VK Randomizer API", docs_url="/docs", redoc_url="/redoc")
+
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_methods=settings.CORS_ALLOW_METHODS,
+    allow_headers=settings.CORS_ALLOW_HEADERS,
+)
 
 # Настройка логирования
 setup_logging()
