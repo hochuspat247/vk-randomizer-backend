@@ -23,8 +23,8 @@ def test_api():
         ("/api/v1/community-modals/", "Модальные окна"),
         ("/api/v1/nested-community-cards/", "Вложенные карточки"),
         ("/api/v1/notification-cards/", "Уведомления"),
-        ("/api/v1/raffle-cards/", "Розыгрыши"),
-        ("/api/v1/raffle-carousel-cards/", "Розыгрыши карусели")
+        ("/api/v1/raffles/", "Розыгрыши"),
+
     ]
     
     for endpoint, name in endpoints:

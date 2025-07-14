@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from typing import List, Dict
 from src.schemas.community import CommunityCard, CommunityCardCreate, CommunityCardUpdate
+from src.utils.helpers import getRoleDisplayName
 
 router = APIRouter(prefix="/communities", tags=["Communities"])
 
@@ -10,6 +11,7 @@ communities_db: Dict[str, CommunityCard] = {}
 # Демо-данные
 communities_db["1"] = CommunityCard(
     id="1",
+    vk_user_id="123456",
     name="Техно-сообщество",
     nickname="@techclub",
     membersCount="12 500",
@@ -22,6 +24,7 @@ communities_db["1"] = CommunityCard(
 )
 communities_db["2"] = CommunityCard(
     id="2",
+    vk_user_id="123456",
     name="Москва 24 – Новости",
     nickname="@mosnews24",
     membersCount="522K",
@@ -34,6 +37,7 @@ communities_db["2"] = CommunityCard(
 )
 communities_db["3"] = CommunityCard(
     id="3",
+    vk_user_id="654321",
     name="Казань 24 – Новости",
     nickname="@kazan24",
     membersCount="804K",
@@ -46,6 +50,7 @@ communities_db["3"] = CommunityCard(
 )
 communities_db["4"] = CommunityCard(
     id="4",
+    vk_user_id="654321",
     name="Санкт-Петербург Онлайн",
     nickname="@spbonline",
     membersCount="878K",
@@ -58,36 +63,17 @@ communities_db["4"] = CommunityCard(
 )
 
 @router.get("/cards", response_model=List[CommunityCard], summary="Получить список карточек сообществ")
-async def get_community_cards():
+async def get_community_cards(vk_user_id: str = Query(..., description="VK user ID владельца")):
     """
-    Возвращает список всех карточек сообществ в системе.
-    
-    **Возвращает:**
-    - Список всех карточек сообществ с полной информацией
-    
-    **Примеры ответов:**
-    - 200: Успешно получен список карточек
-    - 500: Ошибка сервера при получении данных
-    
-    **Пример ответа:**
-    ```json
-    [
-      {
-        "id": "1",
-        "name": "Техно-сообщество",
-        "nickname": "@techclub",
-        "membersCount": "12 500",
-        "raffleCount": "8",
-        "adminType": "owner",
-        "avatarUrl": "https://example.com/avatar.jpg",
-        "status": "green",
-        "buttonDesc": "Последнее изменение: 14.10 21:31 – Администратор",
-        "stateText": "Активен"
-      }
-    ]
-    ```
+    Возвращает список всех карточек сообществ, принадлежащих пользователю с указанным VK user ID.
     """
-    return list(communities_db.values())
+    result = []
+    for c in communities_db.values():
+        if c.vk_user_id == vk_user_id:
+            card_dict = c.dict()
+            card_dict["adminTypeDisplay"] = getRoleDisplayName(c.adminType)
+            result.append(card_dict)
+    return result
 
 @router.get("/cards/{card_id}", response_model=CommunityCard, summary="Получить карточку сообщества по ID")
 async def get_community_card(card_id: str):

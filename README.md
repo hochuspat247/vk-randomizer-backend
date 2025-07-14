@@ -130,18 +130,12 @@ python test_cors.py
 - `DELETE /api/v1/notification-cards/{id}` - Удалить уведомление
 
 ### Raffles
-- `GET /api/v1/raffle-cards/` - Список всех розыгрышей
-- `GET /api/v1/raffle-cards/{id}` - Получить розыгрыш по ID
-- `POST /api/v1/raffle-cards/` - Создать розыгрыш
-- `PUT /api/v1/raffle-cards/{id}` - Обновить розыгрыш
-- `DELETE /api/v1/raffle-cards/{id}` - Удалить розыгрыш
-
-### Raffle Carousel Cards
-- `GET /api/v1/raffle-carousel-cards/` - Список карточек карусели
-- `GET /api/v1/raffle-carousel-cards/{id}` - Получить карточку по ID
-- `POST /api/v1/raffle-carousel-cards/` - Создать карточку
-- `PUT /api/v1/raffle-carousel-cards/{id}` - Обновить карточку
-- `DELETE /api/v1/raffle-carousel-cards/{id}` - Удалить карточку
+- `GET /api/v1/raffles/` - Список всех розыгрышей
+- `GET /api/v1/raffles/{id}` - Получить розыгрыш по ID
+- `POST /api/v1/raffles/` - Создать розыгрыш
+- `PUT /api/v1/raffles/{id}` - Обновить розыгрыш
+- `DELETE /api/v1/raffles/{id}` - Удалить розыгрыш
+- `PATCH /api/v1/raffles/{id}/status` - Изменить статус розыгрыша
 
 ## 🧪 Тестирование
 

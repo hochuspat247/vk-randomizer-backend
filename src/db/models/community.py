@@ -5,6 +5,10 @@ import enum
 class AdminType(str, enum.Enum):
     OWNER = "owner"
     ADMIN = "admin"
+    EDITOR = "editor"
+    MODERATOR = "moderator"
+    MEMBER = "member"
+    ADVERTISER = "advertiser"
 
 class Status(str, enum.Enum):
     YELLOW = "yellow"
@@ -14,11 +18,14 @@ class Status(str, enum.Enum):
 class StateText(str, enum.Enum):
     ACTIVE = "Активен"
     INACTIVE = "Неактивен"
+    ATTENTION = "Требует внимания"
+    ERROR = "Ошибка"
 
 class Community(Base):
     __tablename__ = "communities"
 
     id = Column(String, primary_key=True, index=True)
+    vk_user_id = Column(String, nullable=False, index=True)  # VK user ID владельца
     name = Column(String, nullable=False)
     nickname = Column(String, nullable=False)
     membersCount = Column(String, nullable=False)

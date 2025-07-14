@@ -82,8 +82,8 @@ def test_api_endpoints():
             "/api/v1/community-modals/",
             "/api/v1/nested-community-cards/",
             "/api/v1/notification-cards/",
-            "/api/v1/raffle-cards/",
-            "/api/v1/raffle-carousel-cards/"
+            "/api/v1/raffles/",
+        
         ]
         
         for endpoint in endpoints:

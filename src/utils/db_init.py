@@ -1,11 +1,8 @@
 from sqlalchemy.orm import Session
 from src.db.models.community import Community
-from src.db.models.notification import Notification
-from src.db.models.raffle import Raffle
+from src.db.models.notification import Notification, NotificationType
+from src.db.models.raffle import Raffle, RaffleStatus
 from src.db.session import get_db
-from src.schemas.community import CommunityCardCreate
-from src.schemas.notification import CompletedNotificationCard, WarningNotificationCard, ErrorNotificationCard
-from src.schemas.raffle import RaffleCreate
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,7 +20,7 @@ def init_community_data(db: Session):
             "avatarUrl": "https://example.com/avatar.jpg",
             "status": "green",
             "buttonDesc": "Последнее изменение: 14.10 21:31 – Администратор",
-            "stateText": "Активен"
+            "stateText": "ACTIVE"
         },
         {
             "id": "2",
@@ -35,7 +32,7 @@ def init_community_data(db: Session):
             "avatarUrl": "https://example.com/mosnews.jpg",
             "status": "yellow",
             "buttonDesc": "Последнее изменение: 15.10 14:20 – Модератор",
-            "stateText": "Требует внимания"
+            "stateText": "ATTENTION"
         },
         {
             "id": "3",
@@ -47,7 +44,7 @@ def init_community_data(db: Session):
             "avatarUrl": "https://example.com/kazan.jpg",
             "status": "red",
             "buttonDesc": "Последнее изменение: 16.10 09:15 – Администратор",
-            "stateText": "Ошибка"
+            "stateText": "ERROR"
         },
         {
             "id": "4",
@@ -59,7 +56,7 @@ def init_community_data(db: Session):
             "avatarUrl": "https://example.com/spb.jpg",
             "status": "green",
             "buttonDesc": "Последнее изменение: 17.10 16:45 – Админ",
-            "stateText": "Активен"
+            "stateText": "ACTIVE"
         }
     ]
     
@@ -78,7 +75,7 @@ def init_notification_data(db: Session):
     notifications_data = [
         {
             "id": 38289,
-            "type": "completed",
+            "type": NotificationType.COMPLETED,
             "raffleId": 38289,
             "participantsCount": 5920,
             "winners": ["593IF", "REOOJ", "DOXO"],
@@ -87,7 +84,7 @@ def init_notification_data(db: Session):
         },
         {
             "id": 38941,
-            "type": "completed",
+            "type": NotificationType.COMPLETED,
             "raffleId": 38941,
             "participantsCount": 4780,
             "winners": ["XZ13B", "LK9FD"],
@@ -96,7 +93,7 @@ def init_notification_data(db: Session):
         },
         {
             "id": 1,
-            "type": "warning",
+            "type": NotificationType.WARNING,
             "warningTitle": "Не удалось подключить виджет",
             "warningDescription": [
                 'Сообщество "Казань 24 – Новости"',
@@ -107,7 +104,7 @@ def init_notification_data(db: Session):
         },
         {
             "id": 2,
-            "type": "error",
+            "type": NotificationType.ERROR,
             "errorTitle": "Ошибка подключения сообщества",
             "errorDescription": "На сервере VK ведутся технические работы. Приносим извинения за доставленные неудобства!",
             "new": False
@@ -126,58 +123,77 @@ def init_notification_data(db: Session):
 
 def init_raffle_data(db: Session):
     """Инициализация данных для розыгрышей"""
+    from datetime import datetime, timedelta
+    
     raffles_data = [
         {
             "id": "492850",
-            "name": "Казань 24 – Новости",
-            "textRaffleState": "Активно",
-            "winnersCount": 5,
-            "mode": "both",
-            "memberCount": "27",
-            "timeLeft": "2Д 9Ч 21М",
-            "progress": 99,
-            "lastModified": "14.10.2025 21:31",
-            "modifiedBy": "Администратор",
-            "statusСommunity": "error",
-            "statusNestedCard": "green",
-            "statusNestedText": "Недостаточно прав",
-            "nickname": "@mosnews24",
-            "membersCountNested": "522K",
-            "adminType": "admin"
+            "name": "Конкурс на лучший пост о лете",
+            "community_id": "1",
+            "contest_text": "Поделитесь своими лучшими летними фотографиями и выиграйте призы! Условия участия: подписка на сообщество и лайк поста.",
+            "photos": ["https://example.com/summer1.jpg", "https://example.com/summer2.jpg"],
+            "require_community_subscription": True,
+            "require_telegram_subscription": False,
+            "telegram_channel": None,
+            "required_communities": ["@techclub", "@mosnews24"],
+            "partner_tags": ["@summer_partner"],
+            "winners_count": 5,
+            "blacklist_participants": ["@spam_user"],
+            "start_date": datetime.now(),
+            "end_date": datetime.now() + timedelta(days=30),
+            "max_participants": 1000,
+            "publish_results": True,
+            "hide_participants_count": False,
+            "exclude_me": False,
+            "exclude_admins": False,
+            "status": RaffleStatus.ACTIVE,
+            "participants_count": 127
         },
         {
             "id": "382189",
-            "name": "Москва 24 – Новости",
-            "textRaffleState": "Активно",
-            "winnersCount": 3,
-            "mode": "time",
-            "timeLeft": "1Д 2Ч",
-            "progress": 72,
-            "lastModified": "10.10.2025 13:10",
-            "modifiedBy": "Модератор",
-            "statusСommunity": "connected",
-            "statusNestedCard": "yellow",
-            "statusNestedText": "Требуется подтверждение",
-            "nickname": "@mos24",
-            "membersCountNested": "1.1M",
-            "adminType": "owner"
+            "name": "Розыгрыш подарков к Новому году",
+            "community_id": "2",
+            "contest_text": "Новогодний розыгрыш! Подпишитесь на наш Telegram-канал и участвуйте в розыгрыше призов.",
+            "photos": ["https://example.com/newyear1.jpg"],
+            "require_community_subscription": True,
+            "require_telegram_subscription": True,
+            "telegram_channel": "@newyear_channel",
+            "required_communities": ["@mosnews24"],
+            "partner_tags": ["@gift_partner", "@holiday_partner"],
+            "winners_count": 3,
+            "blacklist_participants": [],
+            "start_date": datetime.now() - timedelta(days=5),
+            "end_date": datetime.now() + timedelta(days=25),
+            "max_participants": 500,
+            "publish_results": True,
+            "hide_participants_count": True,
+            "exclude_me": True,
+            "exclude_admins": True,
+            "status": RaffleStatus.ACTIVE,
+            "participants_count": 89
         },
         {
             "id": "818394",
-            "name": "Санкт-Петербург Онлайн",
-            "textRaffleState": "Активно",
-            "winnersCount": 10,
-            "mode": "members",
-            "memberCount": "100",
-            "progress": 100,
-            "lastModified": "09.10.2025 08:00",
-            "modifiedBy": "Админ",
-            "statusСommunity": "notConfig",
-            "statusNestedCard": "red",
-            "statusNestedText": "Ошибка подключения",
-            "nickname": "@spbonline",
-            "membersCountNested": "878K",
-            "adminType": "admin"
+            "name": "Конкурс репостов",
+            "community_id": "3",
+            "contest_text": "Сделайте репост этого поста и участвуйте в розыгрыше! Простые условия участия.",
+            "photos": ["https://example.com/repost1.jpg", "https://example.com/repost2.jpg", "https://example.com/repost3.jpg"],
+            "require_community_subscription": True,
+            "require_telegram_subscription": False,
+            "telegram_channel": None,
+            "required_communities": ["@kazan24"],
+            "partner_tags": [],
+            "winners_count": 10,
+            "blacklist_participants": ["@bot1", "@bot2"],
+            "start_date": datetime.now() - timedelta(days=10),
+            "end_date": datetime.now() + timedelta(days=20),
+            "max_participants": None,
+            "publish_results": False,
+            "hide_participants_count": False,
+            "exclude_me": False,
+            "exclude_admins": False,
+            "status": RaffleStatus.DRAFT,
+            "participants_count": 0
         }
     ]
     

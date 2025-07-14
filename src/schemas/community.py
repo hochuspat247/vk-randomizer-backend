@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
 class CommunityCardBase(BaseModel):
+    vk_user_id: str = Field(..., description="VK user ID владельца", example="123456")
     name: str = Field(..., description="Название сообщества", example="Техно-сообщество")
     nickname: str = Field(..., description="Никнейм сообщества (с символом @)", example="@techclub")
     membersCount: str = Field(..., description="Количество участников", example="12 500")

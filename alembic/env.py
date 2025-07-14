@@ -11,16 +11,17 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from src.db.base import Base
 from src.db.models.community import Community  # Импортируем модель Community
+from src.db.models.raffle import Raffle  # Импортируем модель Raffle
+from src.db.models.notification import Notification  # Импортируем модель Notification
 
 # Загрузка переменных окружения из .env
 load_dotenv()
 
 config = context.config
 
-# Установка DATABASE_URL из .env
-database_url = os.getenv('DATABASE_URL')
-if not database_url:
-    raise ValueError("DATABASE_URL not found in .env file")
+# Установка DATABASE_URL из настроек приложения
+from src.core.config import settings
+database_url = settings.DATABASE_URL
 print(f"Using DATABASE_URL: {database_url}")  # Отладочный вывод
 
 config.set_main_option('sqlalchemy.url', database_url)
