@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.egg-info/
+.Python
+venv/
+build/
+dist/
+.eggs/
+pip-wheel-metadata/
+
+# Alembic
+alembic/versions/*.pyc
+
+# VSCode / IDE
+.vscode/
+.idea/
+*.swp
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+*.sqlite3
+*.db
+*.tmp
+.cache/
+pytest_cache/
