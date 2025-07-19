@@ -6,12 +6,8 @@ class Settings(BaseSettings):
     APP_PORT: int = 8000
     
     # CORS settings - разрешаем доступ только с нужных доменов
-    CORS_ORIGINS: List[str] = [
-        "https://user440084704-ll3oeny2.tunnel.vk-apps.com",
-        "http://localhost:3000",
-        "https://user440084704-idezbdpu.tunnel.vk-apps.com"
-    ]
-    CORS_ALLOW_CREDENTIALS: bool = True
+    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ALLOW_CREDENTIALS: bool = False
     CORS_ALLOW_METHODS: List[str] = ["*"]
     CORS_ALLOW_HEADERS: List[str] = ["*"]
 
